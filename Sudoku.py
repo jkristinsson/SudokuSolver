@@ -6,7 +6,6 @@ class SudokuCell:
     def __init__(self):
         self.validNumbers = set(list(range(1,10))) 
         self.finalNumber = None
-#        cellsCreated = cellsCreated+1
 
     def __str__(self):
         return f"SudokuCell{self.validNumbers}"
@@ -43,6 +42,10 @@ class SudokuCoordinate:
         self.col = col
     def __str__(self):
         return f"[{self.row},{self.col}]"
+    def moveUp(self)    : self.row = max(1,self.row-1)
+    def moveDown(self)  : self.row = min(9,self.row+1)
+    def moveLeft(self)  : self.col = max(1,self.col-1)
+    def moveRight(self) : self.col = min(9,self.col+1)
     
 class SudokuBoard:
     def __init__(self):
@@ -54,6 +57,14 @@ class SudokuBoard:
                 row.append(c)
             self.cells.append(row)
             row = None
+        
+        # Keep track of highlights and cursors
+        self.highlightedRow = None #5
+        self.highlightedCol = None #9
+        self.highlightedCell = None #(1,3)
+        self.highlightedBlock = SudokuCoordinate(2,2)
+        self.cursorCell = SudokuCoordinate(5,5)
+
 
     def getCell(self,c : SudokuCoordinate) -> SudokuCell :
         return self.cells[c.row-1][c.col-1]
@@ -89,4 +100,13 @@ class SudokuBoard:
             s = s.union(self.cells[coord.row-1][c])
         return s
 
+    def getFinal(self, c : SudokuCoordinate) :
+        cell = self.getCell(c)
+        return cell.getFinalNumber()
+    
+    def isPossible(self, c : SudokuCoordinate, number : int) : 
+        cell = self.getCell(c)
+        return number in cell.getValidNumbers()
+
         
+    
