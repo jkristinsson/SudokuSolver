@@ -20,6 +20,21 @@ from Sudoku import *
 # the terminal afterwards, we are using the 'wrapper' class. We define our program in
 # a main function, then ask wrapper to execute it.
 
+cBORDER = 1
+cFINALIZED = 2
+cHIGHLIGHTED = 3
+cCURSOR = 4
+cCURSORFINAL = 5
+
+def defineColors() :
+    # Finalized
+    curses.init_pair(cFINALIZED,   curses.COLOR_RED,   curses.COLOR_BLACK)
+    # Highlighted
+    curses.init_pair(cHIGHLIGHTED, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+    # Cursor
+    curses.init_pair(cCURSOR,      curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+    # CursorFinal
+    curses.init_pair(cCURSORFINAL, curses.COLOR_RED,   curses.COLOR_MAGENTA)
 
 
 def printGrid(scr : curses.window, sboard : SudokuBoard):
@@ -46,7 +61,7 @@ def printGrid(scr : curses.window, sboard : SudokuBoard):
         for j in range(10):
             scr.addstr(i,j*4,'|')
         for j in range(4):
-            scr.addstr(i,j*12,' ', curses.color_pair(1))
+            scr.addstr(i,j*12,' ', curses.color_pair(cBORDER))
 
 
     # Add the vertical cell borders
@@ -54,22 +69,15 @@ def printGrid(scr : curses.window, sboard : SudokuBoard):
         for j in range(9):
             scr.addstr(i*4,j*4,'+---')
         for j in range(4):
-            scr.addstr(i*4,j*12,' ', curses.color_pair(1))
+            scr.addstr(i*4,j*12,' ', curses.color_pair(cBORDER))
 
     # Add the four bold vertical ones
     for i in range(4):
-        scr.addstr(12*i,0,str(' '*37), curses.color_pair(1))
+        scr.addstr(12*i,0,str(' '*37), curses.color_pair(cBORDER))
 
 
     # Add the possible
-    # Finalized
-    curses.init_pair(2,curses.COLOR_RED,curses.COLOR_BLACK)
-    # Highlighted
-    curses.init_pair(3,curses.COLOR_WHITE,curses.COLOR_YELLOW)
-    # Cursor
-    curses.init_pair(4,curses.COLOR_WHITE,curses.COLOR_MAGENTA)
-    # CursorFinal
-    curses.init_pair(5,curses.COLOR_RED,curses.COLOR_MAGENTA)
+
 
     for cellRow in range(1,10):
         for cellCol in range(1,10):
@@ -81,17 +89,17 @@ def printGrid(scr : curses.window, sboard : SudokuBoard):
             celly = 1+(cellRow-1)*4
 
             highlighted = False
-            if sboard.highlightedRow == cellRow : highlighted = True
-            if sboard.highlightedCol == cellCol : highlighted = True
-            if sboard.highlightedCell == (cellRow,cellCol) : highlighted = True
-            if sboard.highlightedBlock == (blockrow,blockcol) : highlighted = True
+            if sboard.highlightedRow   == cellRow : highlighted = True
+            if sboard.highlightedCol   == cellCol : highlighted = True
+            if sboard.highlightedCell  == SudokuCoordinate(cellRow,cellCol)   : highlighted = True
+            if sboard.highlightedBlock == SudokuCoordinate(blockrow,blockcol) : highlighted = True
 
             color = curses.A_DIM
             if highlighted : 
-                color = curses.color_pair(3)
+                color = curses.color_pair(cHIGHLIGHTED)
 
             if sboard.cursorCell == (SudokuCoordinate(cellRow,cellCol)):
-                color = curses.color_pair(4)
+                color = curses.color_pair(cCURSOR)
 
             finalNumber = sboard.getFinal(SudokuCoordinate(cellRow,cellCol))
             if finalNumber != None : 
@@ -100,13 +108,13 @@ def printGrid(scr : curses.window, sboard : SudokuBoard):
                 if sboard.cursorCell == (cellRow,cellCol):
                     # Color the background
                     for i in range(3):
-                        scr.addstr(y+i-1,x-1,'   ', curses.color_pair(5))
+                        scr.addstr(y+i-1,x-1,'   ', curses.color_pair(cCURSORFINAL))
                     # Color the number
-                    scr.addstr(y,x,str(finalNumber), curses.color_pair(5))
+                    scr.addstr(y,x,str(finalNumber), curses.color_pair(cCURSORFINAL))
                 else:
                     for i in range(3):
-                        scr.addstr(y+i-1,x-1,'   ', curses.color_pair(2))
-                    scr.addstr(y,x,str(finalNumber), curses.color_pair(2))
+                        scr.addstr(y+i-1,x-1,'   ', curses.color_pair(cFINALIZED))
+                    scr.addstr(y,x,str(finalNumber), curses.color_pair(cFINALIZED))
             else:
                 for n in range(1,10):
                     x = cellx + (n-1) % 3

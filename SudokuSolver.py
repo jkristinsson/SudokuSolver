@@ -22,14 +22,7 @@ def main(scr : curses.window):
     # Clear screen
     scr.clear()
     curses.curs_set(False)
-
-    #cBorder = 1
-    #cPossible = 2
-    #cFinal = 3
-    #curses.init_pair(cBorder, fg=curses.COLOR_BLACK, bg=curses.COLOR_WHITE)
-    #curses.init_pair(cPossible, fg=curses.co)
-
-    #b = SudokuBoard()
+    defineColors()
 
     while True:
         printGrid(scr, b)
@@ -41,7 +34,7 @@ def main(scr : curses.window):
         
         elif k == ord(' ') : 
             if b.cursorCell == None :
-                b.cursorCell = (5,5) 
+                b.cursorCell = SudokuCoordinate(5,5) 
             else :
                 b.cursorCell = None
 
