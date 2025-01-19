@@ -42,10 +42,19 @@ class SudokuCoordinate:
         self.col = col
     def __str__(self):
         return f"[{self.row},{self.col}]"
+    
+    # Define __eq__ so that we can compare two coordinates
+    def __eq__(self, other):
+        if not isinstance(other,SudokuCoordinate) :
+            # Don't attempt to compare unrelated types
+            return NotImplemented
+        return self.row == other.row and self.col == other.col
+
     def moveUp(self)    : self.row = max(1,self.row-1)
     def moveDown(self)  : self.row = min(9,self.row+1)
     def moveLeft(self)  : self.col = max(1,self.col-1)
     def moveRight(self) : self.col = min(9,self.col+1)
+
     
 class SudokuBoard:
     def __init__(self):
