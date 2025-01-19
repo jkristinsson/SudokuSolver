@@ -25,17 +25,67 @@ cFINALIZED = 2
 cHIGHLIGHTED = 3
 cCURSOR = 4
 cCURSORFINAL = 5
+cMESSAGE = 6
 
 def defineColors() :
+    # Border
+    curses.init_pair(cBORDER,      curses.COLOR_BLUE,curses.COLOR_BLUE)
     # Finalized
-    curses.init_pair(cFINALIZED,   curses.COLOR_RED,   curses.COLOR_BLACK)
+    curses.init_pair(cFINALIZED,   curses.COLOR_RED,   curses.COLOR_WHITE)
     # Highlighted
     curses.init_pair(cHIGHLIGHTED, curses.COLOR_WHITE, curses.COLOR_YELLOW)
     # Cursor
     curses.init_pair(cCURSOR,      curses.COLOR_WHITE, curses.COLOR_MAGENTA)
     # CursorFinal
     curses.init_pair(cCURSORFINAL, curses.COLOR_RED,   curses.COLOR_MAGENTA)
+    # GUI Message
+    curses.init_pair(cMESSAGE,     curses.COLOR_RED,    curses.COLOR_BLACK)
 
+def setMessage(scr : curses.window, message : str) :
+    maxLength = curses.COLS - 39
+    # Clear the current message
+    scr.addstr(20,39,str(' '*maxLength), curses.color_pair(cMESSAGE))
+    trunkatedMessage = message
+    if len(trunkatedMessage) > maxLength :
+        trunkatedMessage = trunkatedMessage[:maxLength]
+    scr.addstr(20,39,trunkatedMessage, curses.color_pair(cMESSAGE))
+
+
+def getHighlight(scr : curses.window, sboard : SudokuBoard) :
+    setMessage(scr, "Select number to highlight or space to remove")
+    while True :                  
+        k = scr.getch()
+        if k in range(ord('0'),ord('9')+1):
+            x = k - ord('0')
+            sboard.highlightedNumber = x
+            setMessage(scr,"")
+            printGrid(scr, sboard)
+            break
+        elif k == ord(' ') : 
+            setMessage(scr,"")
+            sboard.highlightedNumber = None
+            printGrid(scr, sboard)
+            break
+    
+    
+def finalizeCell(scr : curses.window, sboard : SudokuBoard) :
+    if sboard.cursorCell == None :
+        setMessage(scr, "Need to select cell with cursor first")
+        return
+    
+    setMessage(scr,"Select number to finalize (<enter> or <space> to abort)")
+    while True :
+        k = scr.getch()
+        if k in range(ord('0'),ord('9')+1):
+            x = k - ord('0')
+            sboard.setCell(sboard.cursorCell, x)
+            setMessage(scr,"")
+            printGrid(scr, sboard)
+            break
+        elif k == curses.KEY_ENTER or k == 10 or k == ord(' ') : 
+            setMessage(scr,"")
+            break
+        
 
 def printGrid(scr : curses.window, sboard : SudokuBoard):
     if curses.LINES < 37 or curses.COLS < 50 :
@@ -53,8 +103,14 @@ def printGrid(scr : curses.window, sboard : SudokuBoard):
     scr.addstr(7,38,f"Highlighted cell:  {sboard.highlightedCell}   ")
     scr.addstr(8,38,f"Highlighted block: {sboard.highlightedBlock}   ")
     scr.addstr(9,38,f"Cursor cell:       {sboard.cursorCell}   ")
+    scr.addstr(11,38,f"Press 'c' to toggle cursor")
+    scr.addstr(12,38,f"Press 'h' to highlight a specific number")
+    scr.addstr(13,38,f"Press <space> to toggle highlighting on current cell")
+    scr.addstr(14,38,f"Press 'e' to enter edit mode.")
+    scr.addstr(15,38,f"Press <enter> to finalize a cell")
+    scr.addstr(16,38,f"Press 'u' to undo finalization of a cell")
+    scr.addstr(17,38,f"Press 'p' to toggle possible values")
 
-    curses.init_pair(1,curses.COLOR_WHITE,curses.COLOR_WHITE)
 
     # Plaster the board with the most common numbers grid borders
     for i in range(37):
@@ -98,28 +154,35 @@ def printGrid(scr : curses.window, sboard : SudokuBoard):
             if highlighted : 
                 color = curses.color_pair(cHIGHLIGHTED)
 
+
             if sboard.cursorCell == (SudokuCoordinate(cellRow,cellCol)):
                 color = curses.color_pair(cCURSOR)
 
             finalNumber = sboard.getFinal(SudokuCoordinate(cellRow,cellCol))
-            if finalNumber != None : 
+            if finalNumber != None : # This cell is a finalized cell
                 x = cellx + 1
                 y = celly + 1
-                if sboard.cursorCell == (cellRow,cellCol):
+                # The cursor is on this cell
+                if sboard.cursorCell == SudokuCoordinate(cellRow,cellCol):
                     # Color the background
                     for i in range(3):
                         scr.addstr(y+i-1,x-1,'   ', curses.color_pair(cCURSORFINAL))
                     # Color the number
                     scr.addstr(y,x,str(finalNumber), curses.color_pair(cCURSORFINAL))
+                # The cursor is NOT on this cell
                 else:
+                    finalizedColor = cFINALIZED
+                    if finalNumber == sboard.highlightedNumber : finalizedColor = cHIGHLIGHTED
+
                     for i in range(3):
-                        scr.addstr(y+i-1,x-1,'   ', curses.color_pair(cFINALIZED))
-                    scr.addstr(y,x,str(finalNumber), curses.color_pair(cFINALIZED))
-            else:
+                        scr.addstr(y+i-1,x-1,'   ', curses.color_pair(finalizedColor))
+                    scr.addstr(y,x,str(finalNumber), curses.color_pair(finalizedColor))
+            else: # Not finalized - show individual numbers
+                cellCoord = SudokuCoordinate(cellRow,cellCol)
                 for n in range(1,10):
                     x = cellx + (n-1) % 3
                     y = celly + (n-1) // 3
-                    if sboard.isPossible(SudokuCoordinate(cellRow,cellCol),n):
+                    if sboard.isPossible(cellCoord,n):
                         scr.addstr(y,x,str(n),color)
                     else:
                         scr.addstr(y,x,' ',color)
