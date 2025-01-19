@@ -71,8 +71,9 @@ class SudokuBoard:
         self.highlightedRow = None #5
         self.highlightedCol = None #9
         self.highlightedCell = None #(1,3)
-        self.highlightedBlock = SudokuCoordinate(2,2)
-        self.cursorCell = SudokuCoordinate(5,5)
+        self.highlightedBlock = None #SudokuCoordinate(2,2)
+        self.highlightedNumber = None
+        self.cursorCell = None # SudokuCoordinate(5,5)
 
 
     def getCell(self,c : SudokuCoordinate) -> SudokuCell :
